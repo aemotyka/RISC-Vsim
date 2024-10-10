@@ -74,32 +74,32 @@ void disassemble(FILE* input_file, FILE* output_file) {
                     fprintf(output_file, "SUB x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // SLL
-                else if (strcmp(binary_funct3, "001") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "001") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "SLL x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // SLT
-                else if (strcmp(binary_funct3, "010") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "010") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "SLT x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // XOR
-                else if (strcmp(binary_funct3, "100") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "100") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "XOR x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // SRL
-                else if (strcmp(binary_funct3, "101") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "101") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "SRL x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // OR
-                else if (strcmp(binary_funct3, "110") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "110") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "OR x%u, x%u, x%u", rd, rs1, rs2);
                 }
                 // AND
-                else if (strcmp(binary_funct3, "111") == 0 && strcmp(binary_funct7, "010000") == 0)
+                else if (strcmp(binary_funct3, "111") == 0 && strcmp(binary_funct7, "000000") == 0)
                 {
                     fprintf(output_file, "AND x%u, x%u, x%u", rd, rs1, rs2);
                 }
@@ -110,8 +110,15 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 // SW
                 if (strcmp(binary_funct3, "010") == 0)
                 {
-                    int32_t immediate_ = (funct7 << 6) | rd; // Calculate immediate value
-                    fprintf(output_file, "SW x%u %u(x%u)", rs2, immediate_, rs1);
+                    // Calculate immediate value:
+                    signed short immediate_ = (funct7 << 6) | (rd & 0x1F);
+
+                    // Sign extend immediate
+                    if (immediate_ & 0x400) {
+                        immediate_ |= 0xF800;
+                    }
+
+                    fprintf(output_file, "SW x%u %hi(x%u)", rs2, immediate_, rs1);
                 }
             }
             // Opcode B
@@ -157,7 +164,13 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 // JALR and RET
                 if (strcmp(binary_funct3, "000") == 0)
                 {
-                    int32_t immediate_ = (funct7 << 6) | rs2;
+                    // Calculate immediate value:
+                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
+
+                    // Sign extend immediate
+                    if (immediate_ & 0x800) {
+                        immediate_ |= 0xF000;
+                    }
                     // RET
                     if (strcmp(binary_rd, "00000") == 0 && strcmp(binary_rs1, "00001") == 0 && !immediate_)
                     {
@@ -166,7 +179,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
                     }
                     // JALR
                     else {
-                        fprintf(output_file, "JALR x%u, x%u, x%d", rd, rs1, immediate_);
+                        fprintf(output_file, "JALR x%u, x%u, %hi", rd, rs1, immediate_);
                     }
                 }
             }
@@ -176,18 +189,26 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 // LW
                 if (strcmp(binary_funct3, "010") == 0)
                 {
-                    int32_t immediate_ = (funct7 << 6) | rs2; // Calculate immediate value
-                    fprintf(output_file, "LW x%u, %d(x%u)", rd, immediate_, rs1);
+                    // Calculate immediate value:
+                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
+
+                    // Sign extend immediate
+                    if (immediate_ & 0x800) {
+                        immediate_ |= 0xF000;
+                    }
+                    fprintf(output_file, "LW x%u, %hi(x%u)", rd, immediate_, rs1);
                 }
             }              
             // Still Opcode I
             else if (strcmp(binary_opcode, "0010011") == 0)
             {
-                int32_t immediate_ = (funct7 << 6) | rs2; // Calculate immediate value
+                // Calculate immediate value:
+                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
 
-                if (funct7 & 0x20) {  // Check if the 6th bit of funct7 is set (0x20 = 0010 0000)
-                    immediate_ |= 0xFFFFF000; // Set the upper bits for sign extension (assuming a 12-bit immediate)
-                }
+                    // Sign extend immediate
+                    if (immediate_ & 0x800) {
+                        immediate_ |= 0xF000;
+                    }
                 
                 // ADDI and NOP
                 if (strcmp(binary_funct3, "000") == 0)
@@ -198,13 +219,13 @@ void disassemble(FILE* input_file, FILE* output_file) {
                     }
                     // ADDI
                     else {
-                        fprintf(output_file, "ADDI x%u, x%u, %d", rd, rs1, immediate_);
+                        fprintf(output_file, "ADDI x%u, x%u, %hi", rd, rs1, immediate_);
                     }
                 }
                 // SLTI
                 else if (strcmp(binary_funct3, "010") == 0)
                 {
-                    fprintf(output_file, "SLTI x%u, x%u, %d", rd, rs1, immediate_);
+                    fprintf(output_file, "SLTI x%u, x%u, %hi", rd, rs1, immediate_);
                 }
             }
             // Opcode J
