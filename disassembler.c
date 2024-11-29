@@ -13,6 +13,68 @@ void to_binary_string(uint32_t value, char *buffer, int bits) {
     }
 }
 
+char *processSlice(const char *array, int start, int end, int *sliceLength) {
+    *sliceLength = end - start;
+    
+    // Allocate memory for the new slice (+1 for the null terminator)
+    char *newSlice = malloc((*sliceLength + 1) * sizeof(char));
+
+    // Copy the selected slice into the new array
+    for (int i = 0; i < *sliceLength; i++) {
+        newSlice[i] = array[start + i];
+    }
+    
+    // Null-terminate the new slice
+    newSlice[*sliceLength] = '\0';
+    
+    return newSlice;
+}
+
+char *combineSlices(const char *slices[], int numSlices) {
+    // Calculate total length of the combined string
+    int totalLength = 0;
+    for (int i = 0; i < numSlices; i++) {
+        totalLength += strlen(slices[i]);
+    }
+
+    // Allocate memory for the combined string (+1 for null terminator)
+    char *combined = malloc((totalLength + 1) * sizeof(char));
+
+    // Initialize the combined string
+    combined[0] = '\0';
+
+    // Append each slice to the combined string
+    for (int i = 0; i < numSlices; i++) {
+        strcat(combined, slices[i]);
+    }
+
+    return combined;
+}
+
+char *shiftLeft(const char *binary) {
+    int length = strlen(binary);
+
+    // Allocate memory for the shifted result (+1 for null terminator and 1 extra bit)
+    char *shiftedStr = malloc((length + 1) * sizeof(char));
+
+    // Keep the highest bit (it stays in position)
+    shiftedStr[0] = binary[0];
+
+    // Shift all remaining bits left by 1 and insert '0' at the end
+    for (int i = 1; i < length; i++) {
+        shiftedStr[i] = binary[i];  // Shift left by one position
+    }
+
+    // Append '0' at the rightmost bit
+    shiftedStr[length] = '0';
+
+    // Null-terminate the string
+    shiftedStr[length + 1] = '\0';
+
+    return shiftedStr;
+}
+
+
 // Main code to process input and disassemble it
 void disassemble(FILE* input_file, FILE* output_file) {
     char line[1024];
@@ -28,6 +90,11 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
         // Convert the line (binary string) to an unsigned integer
         uint32_t instruction = (uint32_t)strtoul(line, NULL, 2);
+
+        // Use for immediate value later
+        char instruction_[32];
+        to_binary_string(instruction, instruction_, 32);
+        int size;
 
         // Perform the bit shifting to extract parts
         uint32_t funct7 = (instruction >> 26) & 0x3F;
@@ -107,151 +174,208 @@ void disassemble(FILE* input_file, FILE* output_file) {
             // Opcode S
             else if (strcmp(binary_opcode, "0100011") == 0)
             {
+                // Calculate immediate value:
+                char *bits_11_5 = processSlice(instruction_, 0, 7, &size);
+                char *bits_4_0 = processSlice(instruction_, 20, 25, &size);
+
+                const char *opcode_i_slices[] = {bits_11_5, bits_4_0};
+                char *immediate_ = combineSlices(opcode_i_slices, 2);
+                int immediate = (int)strtol(immediate_, NULL, 2);
+
+                // Sign extend immediate
+                if (immediate & 0x800) {
+                        immediate |= 0xF800;
+                    }
+
                 // SW
                 if (strcmp(binary_funct3, "010") == 0)
                 {
-                    // Calculate immediate value:
-                    signed short immediate_ = (funct7 << 6) | (rd & 0x1F);
-
-                    // Sign extend immediate
-                    if (immediate_ & 0x400) {
-                        immediate_ |= 0xF800;
-                    }
-
-                    fprintf(output_file, "SW x%u %hi(x%u)", rs2, immediate_, rs1);
+                    fprintf(output_file, "SW x%u %hi(x%u)", rs2, immediate, rs1);
                 }
+
+                // Free dynamically allocated memory
+                free(bits_11_5);
+                free(bits_4_0);
+                free(immediate_);
             }
             // Opcode B
             else if (strcmp(binary_opcode, "1100011") == 0)
             {
-                // Calculate immediate value for all Opcode B operations
-                uint32_t imm12 = (instruction >> 31) & 0x1;
-                uint32_t imm10_5 = (instruction >> 25) & 0x3F;
-                uint32_t imm4_1 = (instruction >> 8) & 0xF;
-                uint32_t imm11 = (instruction >> 7) & 0x1;
+                // Calculate immediate value:
+                char *bits_12 = processSlice(instruction_, 0, 1, &size);
+                char *bits_10_5 = processSlice(instruction_, 1, 7, &size);
+                char *bits_4_1 = processSlice(instruction_, 20, 24, &size);
+                char *bits_11 = processSlice(instruction_, 24, 25, &size);
 
-                int32_t immediate_ = (imm12 << 12) | (imm11 << 11) | (imm10_5 << 5) | (imm4_1 << 1);
+                const char *opcode_i_slices[] = {bits_12, bits_11, bits_10_5, bits_4_1};
+                char *immediate_ = combineSlices(opcode_i_slices, 4);
+                char *shifted = shiftLeft(immediate_);
+                int immediate = (int)strtol(shifted, NULL, 2);
 
-                // Perform sign extension if imm12 is set
-                if (imm12) {
-                    immediate_ |= 0xFFFFE000;
+                // Perform sign extension
+                if (immediate & 0x800) {
+                    immediate |= 0xFFFFE000;
                 }
 
                 // BEQ
                 if (strcmp(binary_funct3, "000") == 0)
                 {
-                    fprintf(output_file, "BEQ x%u, x%u, %d", rs1, rs2, immediate_);
+                    fprintf(output_file, "BEQ x%u, x%u, %d", rs1, rs2, immediate);
                 }
                 // BNE
                 else if (strcmp(binary_funct3, "001") == 0)
                 {
-                    fprintf(output_file, "BNE x%u, x%u, %d", rs1, rs2, immediate_);
+                    fprintf(output_file, "BNE x%u, x%u, %d", rs1, rs2, immediate);
                 }
                 // BLT
                 else if (strcmp(binary_funct3, "100") == 0)
                 {
-                    fprintf(output_file, "BLT x%u, x%u, %d", rs1, rs2, immediate_);
+                    fprintf(output_file, "BLT x%u, x%u, %d", rs1, rs2, immediate);
                 }
                 // BGE
                 else if (strcmp(binary_funct3, "101") == 0)
                 {
-                    fprintf(output_file, "BGE x%u, x%u, %d", rs1, rs2, immediate_);
+                    fprintf(output_file, "BGE x%u, x%u, %d", rs1, rs2, immediate);
                 }
+
+                // Free dynamically allocated memory
+                free(bits_12);
+                free(bits_10_5);
+                free(bits_4_1);
+                free(bits_11);
+                free(immediate_);
+                free(shifted);
             }
             // Opcode I
             else if (strcmp(binary_opcode, "1100111") == 0)
             {
+                // Calculate immediate value:
+                char *bits_0_11 = processSlice(instruction_, 0, 12, &size);
+                const char *opcode_i_slices[] = {bits_0_11};
+                char *immediate_ = combineSlices(opcode_i_slices, 1);
+                int immediate = (int)strtol(immediate_, NULL, 2);
+
+                // Sign extend immediate
+                if (immediate & 0x800) {
+                        immediate |= 0xF000;
+                    }
+
                 // JALR and RET
                 if (strcmp(binary_funct3, "000") == 0)
                 {
-                    // Calculate immediate value:
-                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
-
-                    // Sign extend immediate
-                    if (immediate_ & 0x800) {
-                        immediate_ |= 0xF000;
-                    }
                     // RET
-                    if (strcmp(binary_rd, "00000") == 0 && strcmp(binary_rs1, "00001") == 0 && !immediate_)
+                    if (strcmp(binary_rd, "00000") == 0 && strcmp(binary_rs1, "00001") == 0 && !immediate)
                     {
                         returned = true;
                         fprintf(output_file, "RET\t\t//JALR x0, x1, 0");
                     }
                     // JALR
                     else {
-                        fprintf(output_file, "JALR x%u, x%u, %hi", rd, rs1, immediate_);
+                        fprintf(output_file, "JALR x%u, x%u, %hi", rd, rs1, immediate);
                     }
                 }
+
+                // Free dynamically allocated memory
+                free(bits_0_11);
+                free(immediate_);
             }
             // Still Opcode I
             else if (strcmp(binary_opcode, "0000011") == 0)
             {
+                // Calculate immediate value:
+                char *bits_0_11 = processSlice(instruction_, 0, 12, &size);
+                const char *opcode_i_slices[] = {bits_0_11};
+                char *immediate_ = combineSlices(opcode_i_slices, 1);
+                int immediate = (int)strtol(immediate_, NULL, 2);
+
+                // Sign extend immediate
+                if (immediate & 0x800) {
+                        immediate |= 0xF000;
+                    }
+                
                 // LW
                 if (strcmp(binary_funct3, "010") == 0)
                 {
-                    // Calculate immediate value:
-                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
-
-                    // Sign extend immediate
-                    if (immediate_ & 0x800) {
-                        immediate_ |= 0xF000;
-                    }
-                    fprintf(output_file, "LW x%u, %hi(x%u)", rd, immediate_, rs1);
+                    fprintf(output_file, "LW x%u, %hi(x%u)", rd, immediate, rs1);
                 }
+
+                // Free dynamically allocated memory
+                free(bits_0_11);
+                free(immediate_);
             }              
             // Still Opcode I
             else if (strcmp(binary_opcode, "0010011") == 0)
             {
                 // Calculate immediate value:
-                    signed short immediate_ = (funct7 << 7) | (rs2 & 0x3F);
+                char *bits_0_11 = processSlice(instruction_, 0, 12, &size);
+                const char *opcode_i_slices[] = {bits_0_11};
+                char *immediate_ = combineSlices(opcode_i_slices, 1);
+                int immediate = (int)strtol(immediate_, NULL, 2);
 
-                    // Sign extend immediate
-                    if (immediate_ & 0x800) {
-                        immediate_ |= 0xF000;
+                // Sign extend immediate
+                if (immediate & 0x800) {
+                        immediate |= 0xF000;
                     }
                 
                 // ADDI and NOP
                 if (strcmp(binary_funct3, "000") == 0)
                 {
                     // NOP
-                    if (strcmp(binary_rd, "00000") == 0 && strcmp(binary_rs1, "00000") == 0 && !immediate_) {
+                    if (strcmp(binary_rd, "00000") == 0 && strcmp(binary_rs1, "00000") == 0 && !immediate) {
                         fprintf(output_file, "NOP\t\t//ADDI x0, x0, 0");
                     }
                     // ADDI
                     else {
-                        fprintf(output_file, "ADDI x%u, x%u, %hi", rd, rs1, immediate_);
+                        fprintf(output_file, "ADDI x%u, x%u, %hi", rd, rs1, immediate);
                     }
                 }
                 // SLTI
                 else if (strcmp(binary_funct3, "010") == 0)
                 {
-                    fprintf(output_file, "SLTI x%u, x%u, %hi", rd, rs1, immediate_);
+                    fprintf(output_file, "SLTI x%u, x%u, %hi", rd, rs1, immediate);
                 }
+
+                // Free dynamically allocated memory
+                free(bits_0_11);
+                free(immediate_);
             }
             // Opcode J
             else if (strcmp(binary_opcode, "1101111") == 0)
             {
-                // JAL
+                // Calculate immediate value:
+                char *bits_20 = processSlice(instruction_, 0, 1, &size);
+                char *bits_12_19 = processSlice(instruction_, 12, 20, &size);
+                char *bits_11 = processSlice(instruction_, 11, 12, &size);
+                char *bits_1_10 = processSlice(instruction_, 1, 11, &size);
+
+                const char *opcode_i_slices[] = {bits_20, bits_12_19, bits_11, bits_1_10};
+                char *immediate_ = combineSlices(opcode_i_slices, 4);
+                char *shifted = shiftLeft(immediate_);
+                int immediate = (int)strtol(shifted, NULL, 2);
+
+                // Sign extend the immediate value
+                if (immediate & 0x80000) {
+                    immediate |= 0xFF00000;  // Sign-extend to 32-bits
+                }
+                
                 if (true) {
-                    // Calculate immediate value
-                    uint32_t imm20 = (instruction >> 31) & 0x1;
-                    uint32_t imm19_12 = (instruction >> 12) & 0xFF;
-                    uint32_t imm11 = (instruction >> 20) & 0x1;
-                    uint32_t imm10_1 = (instruction >> 21) & 0x3FF;
-
-                    int32_t immediate_ = (imm20 << 20) | (imm19_12 << 12) | (imm11 << 11) | (imm10_1 << 1);
-
-                    // Perform sign extension if imm20 is set
-                    if (imm20) {
-                        immediate_ |= 0xFFF00000;
-                    }
+                    // J
                     if (strcmp(binary_rd, "00000") == 0) {
-                        fprintf(output_file, "J\t\t//JAL x0, %d", immediate_);
+                        fprintf(output_file, "J\t\t//JAL x0, %hi", immediate);
                     }
+                    // JAL
                     else {
-                        fprintf(output_file, "JAL x%u, %d", rd, immediate_);
+                        fprintf(output_file, "JAL x%u, %hi", rd, immediate);
                     }
                 }
+
+                // Free dynamically allocated memory
+                free(bits_20);
+                free(bits_12_19);
+                free(bits_11);
+                free(bits_1_10);
+                free(immediate_);
+                free(shifted);
             }
         }
 
