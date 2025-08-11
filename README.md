@@ -7,4 +7,4 @@ To dissassemble:
 ./RISC-Vsim inputfilename outputfilename dis
 
 To simulate pipeline:
-./RISC-Vsim inputfilename outputfilename sim
+./RISC-Vsim inputfilename outputfilename sim <T{trace start}:{trace end}>
