@@ -21,7 +21,7 @@ with tempfile.TemporaryDirectory(prefix="riscv-errors-") as directory:
         ("missing-memory", f"{0x8067:032b}\n", "sim", [], "is absent"),
         ("jump-beyond-input", f"{0x4000006f:032b}\n" + ("0" * 32 + "\n") * 35,
          "sim", [], "is absent"),
-        ("bad-operation", valid, "unknown", [], "Unsuported operation"),
+        ("bad-operation", valid, "unknown", [], "Unsupported operation"),
         ("negative-trace", valid, "sim", ["T-1:4"], "Invalid trace format"),
         ("reversed-trace", valid, "sim", ["T4:1"], "Invalid trace format"),
         ("trailing-trace", valid, "sim", ["T0:4junk"], "Invalid trace format"),

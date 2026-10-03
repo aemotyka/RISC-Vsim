@@ -28,7 +28,7 @@ typedef struct {
     int _ds_wb_to_ex_df;
     int _ds_wb_to_rf_ex;
     int break_pc;
-    u_int32_t cycle;
+    uint32_t cycle;
     int branch_stalls;
     int load_stalls;
     int other_stalls;
@@ -133,7 +133,6 @@ typedef struct {
     bool rs2_forwarded;
 } DS_WB;
 
-// Not sure if i need this one
 typedef struct {
     char instruction[10];
     uint8_t rs1;
@@ -246,9 +245,9 @@ void IS() {
     is_id.pc = if_is.NPC - 4;
     is_id.instruction = readSpecificLine(if_is.input_file, is_id.pc);
 
-    u_int8_t rs2 = (is_id.instruction >> 20) & 0x1F;
-    u_int8_t rs1 = (is_id.instruction >> 15) & 0x1F;
-    u_int8_t rd = (is_id.instruction >> 7) & 0x1F;
+    uint8_t rs2 = (is_id.instruction >> 20) & 0x1F;
+    uint8_t rs1 = (is_id.instruction >> 15) & 0x1F;
+    uint8_t rd = (is_id.instruction >> 7) & 0x1F;
     uint32_t opcode = is_id.instruction & 0x7F;
 
     if (id_rf.returned) {
@@ -262,9 +261,6 @@ void IS() {
 
 void ID() {
     id_rf.no_op_no = false;
-
-    if (strcmp(is_id.status, "**STALL**") == 0) {
-    }
 
     if (ex_df.branch_taken) {
         snprintf(id_rf.status, sizeof(id_rf.status), "**STALL**");
@@ -615,24 +611,22 @@ void ID() {
                 immediate -= 0x200000;
             }
                 
-            if (true) {
-                // J
-                if (strcmp(binary_rd, "00000") == 0) {
-                    strcpy(id_rf.instruction, "J");
-                    id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s #%u", id_rf.instruction, id_rf.pc + (uint32_t)id_rf.imm);
-                    id_rf.rd = 0;
-                    id_rf.rs1 = 0;
-                    id_rf.rs2 = 0;
-                }
-                // JAL
-                else {
-                    strcpy(id_rf.instruction, "JAL");
-                    id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.imm);
-                    id_rf.rs1 = 0;
-                    id_rf.rs2 = 0;
-                }
+            // J
+            if (strcmp(binary_rd, "00000") == 0) {
+                strcpy(id_rf.instruction, "J");
+                id_rf.imm = immediate;
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s #%u", id_rf.instruction, id_rf.pc + (uint32_t)id_rf.imm);
+                id_rf.rd = 0;
+                id_rf.rs1 = 0;
+                id_rf.rs2 = 0;
+            }
+            // JAL
+            else {
+                strcpy(id_rf.instruction, "JAL");
+                id_rf.imm = immediate;
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.imm);
+                id_rf.rs1 = 0;
+                id_rf.rs2 = 0;
             }
 
             // Free dynamically allocated memory
@@ -664,7 +658,7 @@ void ID() {
             (strcmp(id_rf.instruction, "ADDI") == 0) || (strcmp(id_rf.instruction, "JALR") == 0) ||
             (strcmp(id_rf.instruction, "SLTI") == 0) || (strcmp(id_rf.instruction, "BEQ") == 0) ||
             (strcmp(id_rf.instruction, "BNE") == 0) || (strcmp(id_rf.instruction, "BLT") == 0) ||
-            (strcmp(id_rf.instruction, "BEQ") == 0)) {
+            (strcmp(id_rf.instruction, "BGE") == 0)) {
                 if (rf_ex.rd != 0 && rf_ex.rd == id_rf.rs1) {
                     CPUstate.load_stall_length = 2;
                     snprintf(CPUstate.stall_inst, sizeof(CPUstate.stall_inst), "%s", id_rf.status);
@@ -676,7 +670,7 @@ void ID() {
             (strcmp(id_rf.instruction, "OR") == 0) || (strcmp(id_rf.instruction, "XOR") == 0) ||
             (strcmp(id_rf.instruction, "SW") == 0) || (strcmp(id_rf.instruction, "BEQ") == 0) ||
             (strcmp(id_rf.instruction, "BNE") == 0) || (strcmp(id_rf.instruction, "BLT") == 0) ||
-            (strcmp(id_rf.instruction, "BEQ") == 0)) {
+            (strcmp(id_rf.instruction, "BGE") == 0)) {
                 if (rf_ex.rd != 0 && rf_ex.rd == id_rf.rs2) {
                     CPUstate.load_stall_length = 3;
                     snprintf(CPUstate.stall_inst, sizeof(CPUstate.stall_inst), "%s", id_rf.status);
@@ -687,24 +681,12 @@ void ID() {
     if (CPUstate.load_stall_length > 0) {
         
         snprintf(CPUstate.forwarding_inst, sizeof(CPUstate.forwarding_inst), "(none)");
-        if (CPUstate.load_stall_length > 2) {
-        }
         return;
     } else {
         snprintf(CPUstate.stall_inst, sizeof(CPUstate.stall_inst), "(none)");
     }
 
-    //Branch hazard stall
-    // if ((strcmp(rf_ex.instruction, "BEQ") == 0) || (strcmp(rf_ex.instruction, "BNE") == 0) || (strcmp(rf_ex.instruction, "BLT") == 0) || (strcmp(rf_ex.instruction, "BGE") == 0)) {
-    //     CPUstate.branch_stalls++;
-    // }
-
     CPUstate.forwarding_inst[0] = '\0';
-
-    // if (CPUstate.load_stall_length > 0) {
-    //     snprintf(CPUstate.forwarding_inst, sizeof(CPUstate.forwarding_inst), "(none)");
-    //     return;
-    // }
 
     // Forwarding Detection
     if ((strcmp(rf_ex.instruction, "ADD") == 0) || (strcmp(rf_ex.instruction, "SUB") == 0) || 
@@ -779,7 +761,7 @@ void ID() {
                 (strcmp(id_rf.instruction, "BEQ") == 0) || (strcmp(id_rf.instruction, "BNE") == 0) || 
                 (strcmp(id_rf.instruction, "BLT") == 0) || (strcmp(id_rf.instruction, "BGE") == 0) || 
                 (strcmp(id_rf.instruction, "SW") == 0)) {
-                    if (ex_df.rd != 0 && ex_df.rd == rf_ex.rs1) {
+                    if (ex_df.rd != 0 && ex_df.rd == id_rf.rs2) {
                     append_forwarding(ex_df.status, id_rf.status);
                 }
             }
@@ -988,8 +970,6 @@ void DF() {
 
 void DS() {
     if (strcmp(df_ds.instruction, "LW") == 0) {
-        // Since the data is already fetched in DF stage, we just forward the data here
-        // Data is ready to be forwarded for write-back (or to be used in the next stages)
         ds_wb.mem_data = df_ds.mem_data;
     }
     else if (strcmp(df_ds.instruction, "SW") == 0) {
@@ -1084,32 +1064,6 @@ void initialize(FILE* input_file) {
 };
 
 void handle_forward() {
-    // if (strcmp(CPUstate.ex_df_to_rf_ex, "(none)")) {
-    //     CPUstate._ex_df_to_rf_ex++;
-    // }
-
-    // if (strcmp(CPUstate.df_ds_to_ex_df, "(none)")) {
-    //     CPUstate._df_ds_to_ex_df++;
-    // }
-
-    // if (strcmp(CPUstate.df_ds_to_rf_ex, "(none)")) {
-    //     CPUstate._df_ds_to_rf_ex++;
-    // }
-
-    // if (strcmp(CPUstate.ds_wb_to_rf_ex, "(none)")) {
-    //     CPUstate._ds_wb_to_rf_ex++;
-    // }
-
-    // if (strcmp(CPUstate.ds_wb_to_ex_df, "(none)")) {
-    //     CPUstate._ds_wb_to_ex_df++;
-    // }
-
-    // strcpy(CPUstate.ex_df_to_rf_ex_out, CPUstate.ex_df_to_rf_ex);
-    // strcpy(CPUstate.df_ds_to_ex_df_out, CPUstate.df_ds_to_ex_df);
-    // strcpy(CPUstate.df_ds_to_rf_ex_out, CPUstate.df_ds_to_rf_ex);
-    // strcpy(CPUstate.ds_wb_to_rf_ex_out, CPUstate.ds_wb_to_rf_ex);
-    // strcpy(CPUstate.ds_wb_to_ex_df_out, CPUstate.ds_wb_to_ex_df);
-
     strcpy(CPUstate.ex_df_to_rf_ex, "(none)");
     strcpy(CPUstate.df_ds_to_ex_df, "(none)");
     strcpy(CPUstate.df_ds_to_rf_ex, "(none)");
@@ -1324,7 +1278,7 @@ void trace_output(FILE* output_file) {
     fprintf(output_file, "\n");
     fprintf(output_file, "Forwarding:\n");
     fprintf(output_file, " Detected: %s\n", CPUstate.forwarding_inst);
-    fprintf(output_file, " Forwarded:\n"); // FIX
+    fprintf(output_file, " Forwarded:\n");
     fprintf(output_file, " * EX/DF -> RF/EX : %s\n", CPUstate.ex_df_to_rf_ex);
     fprintf(output_file, " * DF/DS -> EX/DF : %s\n", CPUstate.df_ds_to_ex_df);
     fprintf(output_file, " * DF/DS -> RF/EX : %s\n", CPUstate.df_ds_to_rf_ex);
@@ -1426,7 +1380,7 @@ void print_summary(FILE* output_file) {
 };
 
 void simulate(FILE* input_file, FILE* output_file, int trace_start, int trace_end) {
-initialize(input_file);
+    initialize(input_file);
     while (!CPUstate.returned) {
         WB();
         DS();

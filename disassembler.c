@@ -288,15 +288,13 @@ void disassemble(FILE* input_file, FILE* output_file) {
                     immediate -= 0x200000;
                 }
                 
-                if (true) {
-                    // J
-                    if (strcmp(binary_rd, "00000") == 0) {
-                        fprintf(output_file, "J\t\t//JAL x0, %i", immediate);
-                    }
-                    // JAL
-                    else {
-                        fprintf(output_file, "JAL x%u, %i", rd, immediate);
-                    }
+                // J
+                if (strcmp(binary_rd, "00000") == 0) {
+                    fprintf(output_file, "J\t\t//JAL x0, %i", immediate);
+                }
+                // JAL
+                else {
+                    fprintf(output_file, "JAL x%u, %i", rd, immediate);
                 }
 
                 // Free dynamically allocated memory

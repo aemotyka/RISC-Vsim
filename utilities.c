@@ -17,7 +17,7 @@ static void *checked_malloc(size_t bytes) {
 }
 
 void print_usage() {
-    printf("Usage: RISC-Vsim <inputfilename> <outputfilename> dis\n");
+    printf("Usage: RISC-Vsim <inputfilename> <outputfilename> dis|sim [Tstart:end]\n");
 }
 
 void to_binary_string(uint32_t value, char *buffer, int bits) {

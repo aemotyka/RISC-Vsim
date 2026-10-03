@@ -90,13 +90,9 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     } else {
-        // No trace provided; calculate m as the total number of lines in the input file
         trace_start = 0;
         trace_end = 250;
-        rewind(input_file); // Reset file pointer after counting lines
     }
-
-    // printf("Trace values: n = %d, m = %d\n", trace_start, trace_end);
 
     // Check operation
     if (strcmp(operation, "dis") == 0) {
@@ -106,7 +102,7 @@ int main(int argc, char *argv[]) {
         simulate(input_file, output_file, trace_start, trace_end);
         free_input();
     } else {
-        fprintf(stderr, "Error: Unsuported operation.\n");
+        fprintf(stderr, "Error: Unsupported operation.\n");
         print_usage();
         fclose(input_file);
         fclose(output_file);

@@ -15,6 +15,7 @@ def slti(rd, rs1, imm):
     return addi(rd, rs1, imm) | 2 << 12
 
 cases = [
+    ("rs2-hazard-report", [addi(5, 0, 42), 0x13, op(6, 0, 5)], {5: 42, 6: 42}),
     ("wide-arithmetic", [addi(1, 0, 2047), addi(2, 0, 5),
         op(1, 1, 2, 1), addi(1, 1, 100), op(5, 1, 1)],
         {1: 65604, 5: 131208}),
@@ -62,4 +63,11 @@ with tempfile.TemporaryDirectory(prefix="riscv-arithmetic-") as directory:
         for register, value in expected.items():
             if values[register] != value:
                 raise SystemExit(f"FAIL: {name}: R{register}={values[register]}, expected {value}")
+        if name == "rs2-hazard-report":
+            expected = "(ADDI R5, R0, #42) to (ADD R6, R0, R5)"
+            cycle = next((c for c in trace.split("***** Cycle #")
+                          if " * ID : ADD R6, R0, R5\n" in c
+                          and " * EX : ADDI R5, R0, #42\n" in c), "")
+            if " Detected: " + expected not in cycle:
+                raise SystemExit("FAIL: missing rs2 hazard report")
         print(f"PASS: {name}")
