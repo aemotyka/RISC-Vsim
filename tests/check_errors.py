@@ -73,6 +73,13 @@ int main(int argc, char **argv) {
     if (strcmp(argv[1], "slice") == 0) processSlice("01", 0, 1, &size);
     else if (strcmp(argv[1], "combine") == 0) combineSlices(slices, 2);
     else if (strcmp(argv[1], "shift") == 0) shiftLeft("01");
+    else if (strcmp(argv[1], "input") == 0) {
+        FILE *input = tmpfile();
+        if (!input) return 2;
+        fputs("00000000000000000000000000000000\n", input);
+        rewind(input);
+        load_input(input);
+    }
     else readSpecificLine(output, 497);
     return 2;
 }
@@ -83,7 +90,7 @@ int main(int argc, char **argv) {
     fault = work / "fault"
     subprocess.run(["cc", *flags, "-I", str(root), str(harness), str(obj), "-o", str(fault)],
                    check=True)
-    for name in ("slice", "combine", "shift", "unaligned-address"):
+    for name in ("slice", "combine", "shift", "input", "unaligned-address"):
         output = work / "flush.out"
         result = subprocess.run([str(fault), name, str(output)],
                                 capture_output=True, text=True, timeout=5)

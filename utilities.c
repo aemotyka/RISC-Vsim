@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdbool.h>
 
+static uint32_t *input_words;
+static size_t input_count;
+
 static void *checked_malloc(size_t bytes) {
     void *memory = malloc(bytes);
     if (memory == NULL) {
@@ -86,26 +89,53 @@ char *shiftLeft(const char *binary) {
     return shiftedStr;
 }
 
+void free_input(void) {
+    free(input_words);
+    input_words = NULL;
+    input_count = 0;
+}
+
+void load_input(FILE *input_file) {
+    free_input();
+    rewind(input_file);
+    char buffer[1024];
+    size_t count = 0;
+    while (fgets(buffer, sizeof(buffer), input_file)) {
+        if (count == SIZE_MAX / sizeof(*input_words)) {
+            fprintf(stderr, "Error: Input is too large.\n");
+            exit(EXIT_FAILURE);
+        }
+        count++;
+    }
+    if (ferror(input_file) || count == 0) {
+        fprintf(stderr, "Error: Could not read input.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    input_words = checked_malloc(count * sizeof(*input_words));
+    rewind(input_file);
+    for (size_t i = 0; i < count; i++) {
+        if (!fgets(buffer, sizeof(buffer), input_file)) {
+            free_input();
+            fprintf(stderr, "Error: Could not read input.\n");
+            exit(EXIT_FAILURE);
+        }
+        input_words[i] = (uint32_t)strtoul(buffer, NULL, 2);
+    }
+    input_count = count;
+}
+
 uint32_t readSpecificLine(FILE* input_file, int lineNumber) {
+    (void)input_file;
     if (lineNumber < 496 || (lineNumber - 496) % 4 != 0) {
         fprintf(stderr, "Error: Invalid input address %d.\n", lineNumber);
         exit(EXIT_FAILURE);
     }
 
-    rewind(input_file);
-    char buffer[1024];
-    uint64_t address = 496;
-
-    while (fgets(buffer, sizeof(buffer), input_file)) {
-        if (address == (uint32_t)lineNumber) {
-            return (uint32_t)strtoul(buffer, NULL, 2);
-        }
-        address += 4;
-    }
-    if (ferror(input_file)) {
-        fprintf(stderr, "Error: Could not read input.\n");
-    } else {
+    size_t index = ((uint32_t)lineNumber - 496) / 4;
+    if (index >= input_count) {
         fprintf(stderr, "Error: Input address %d is absent.\n", lineNumber);
+        exit(EXIT_FAILURE);
     }
-    exit(EXIT_FAILURE);
+    return input_words[index];
 }

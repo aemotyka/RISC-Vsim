@@ -1,0 +1,77 @@
+{
+  "label": "indexed-fetch",
+  "source_revision": "6aa03459225884305696183dc4d59d8d28ae7b4c+indexed-working-copy",
+  "created_utc": "2026-10-03T20:37:34.602624+00:00",
+  "platform": "macOS-26.5.2-x86_64-i386-64bit",
+  "machine": "x86_64",
+  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
+  "flags": [
+    "-O2",
+    "-DNDEBUG",
+    "-Wall",
+    "-Wextra",
+    "-Werror"
+  ],
+  "source_sha256": {
+    "disassembler.c": "2aa51024aee133f727bd58f9872eedeaa1358c80941a9837c0773e7fe220153e",
+    "disassembler.h": "424d4aaff2e0f019cae46104bff1db683f81e3e5bc47ab34adcf85a6f74a2a9e",
+    "main.c": "9bfd42207aa8282ee2a3823643e6013d7558d73251e72bc6253b9fe8442cbd08",
+    "pipeline.c": "303dafe498d66e66bc8fea0227bd1f4f19b412b18cb9c4d544bf5d20e3ef445c",
+    "pipeline.h": "a1205a6c2840a5b14240740968a8929cfaed545bdd9c761aff7d606903b99208",
+    "utilities.c": "ce1865b5508ccda6c76bf5ac8fe12d4b17c06b593b0d8e3dd04b31b1a713508d",
+    "utilities.h": "1f5961a54720b9e47a711b7f4e9197125630fc049e2846d5ec734fae07e0b4b8"
+  },
+  "timing": "process startup, input validation, simulation, and summary output; build excluded",
+  "trace_range": "T2147483647:2147483647",
+  "warmup_runs": 1,
+  "results": [
+    {
+      "increments": 512,
+      "input_bytes": 18381,
+      "input_sha256": "03cd23224d4f03d4a8e218c5126ea38321d2de5d18f49db513b63c564487b14e",
+      "seconds": [
+        0.013470583999151131,
+        0.012959916999534471,
+        0.012634416998480447,
+        0.012533832999906735,
+        0.012510083000961458
+      ],
+      "median_seconds": 0.012634416998480447,
+      "min_seconds": 0.012510083000961458,
+      "max_seconds": 0.013470583999151131,
+      "summary": "**** Summary ************************************************\n\nBREAK PC = 2692\n\nTotal Cycles Simulated = 525\n\nInteger Registers:\nR0       0 R1       0 R2       0 R3       0 \nR4       0 R5       512 R6       0 R7       0 \nR8       0 R9       0 R10       0 R11       0 \nR12       0 R13       0 R14       0 R15       0 \nR16       0 R17       0 R18       0 R19       0 \nR20       0 R21       0 R22       0 R23       0 \nR24       0 R25       0 R26       0 R27       0 \nR28       0 R29       0 R30       0 R31       0 \n\nData Memory:\n600: 0\n604: 0\n608: 0\n612: 0\n616: 0\n620: 0\n624: 0\n628: 0\n632: 0\n636: 0\n\nTotal Stalls:\n * Loads: 0\n * Branches: 4\n * Other: 0\n\nTotal Forwardings:\n * EX/DF -> RF/EX : 511\n * DF/DS -> EX/DF : 0\n * DF/DS -> RF/EX : 0\n * DS/WB -> EX/DF : 0\n * DS/WB -> RF/EX : 0\n\n"
+    },
+    {
+      "increments": 2048,
+      "input_bytes": 69069,
+      "input_sha256": "2ff76e31fb5d7b079ccf36fd8a58c740ddd2101587e2e624d2774cdbd195c89e",
+      "seconds": [
+        0.02339541699984693,
+        0.022505957997054793,
+        0.022516291002830258,
+        0.022557665997737786,
+        0.022386624998034677
+      ],
+      "median_seconds": 0.022516291002830258,
+      "min_seconds": 0.022386624998034677,
+      "max_seconds": 0.02339541699984693,
+      "summary": "**** Summary ************************************************\n\nBREAK PC = 8836\n\nTotal Cycles Simulated = 2061\n\nInteger Registers:\nR0       0 R1       0 R2       0 R3       0 \nR4       0 R5       2048 R6       0 R7       0 \nR8       0 R9       0 R10       0 R11       0 \nR12       0 R13       0 R14       0 R15       0 \nR16       0 R17       0 R18       0 R19       0 \nR20       0 R21       0 R22       0 R23       0 \nR24       0 R25       0 R26       0 R27       0 \nR28       0 R29       0 R30       0 R31       0 \n\nData Memory:\n600: 0\n604: 0\n608: 0\n612: 0\n616: 0\n620: 0\n624: 0\n628: 0\n632: 0\n636: 0\n\nTotal Stalls:\n * Loads: 0\n * Branches: 4\n * Other: 0\n\nTotal Forwardings:\n * EX/DF -> RF/EX : 2047\n * DF/DS -> EX/DF : 0\n * DF/DS -> RF/EX : 0\n * DS/WB -> EX/DF : 0\n * DS/WB -> RF/EX : 0\n\n"
+    },
+    {
+      "increments": 8192,
+      "input_bytes": 271821,
+      "input_sha256": "f6032f4126dcbfdab9385da83090e4135a8ed852b64e242d51375b5e5e37da15",
+      "seconds": [
+        0.04322066600070684,
+        0.03954712500126334,
+        0.04303100000106497,
+        0.043626083999697585,
+        0.04211004199896706
+      ],
+      "median_seconds": 0.04303100000106497,
+      "min_seconds": 0.03954712500126334,
+      "max_seconds": 0.043626083999697585,
+      "summary": "**** Summary ************************************************\n\nBREAK PC = 33412\n\nTotal Cycles Simulated = 8205\n\nInteger Registers:\nR0       0 R1       0 R2       0 R3       0 \nR4       0 R5       8192 R6       0 R7       0 \nR8       0 R9       0 R10       0 R11       0 \nR12       0 R13       0 R14       0 R15       0 \nR16       0 R17       0 R18       0 R19       0 \nR20       0 R21       0 R22       0 R23       0 \nR24       0 R25       0 R26       0 R27       0 \nR28       0 R29       0 R30       0 R31       0 \n\nData Memory:\n600: 0\n604: 0\n608: 0\n612: 0\n616: 0\n620: 0\n624: 0\n628: 0\n632: 0\n636: 0\n\nTotal Stalls:\n * Loads: 0\n * Branches: 4\n * Other: 0\n\nTotal Forwardings:\n * EX/DF -> RF/EX : 8191\n * DF/DS -> EX/DF : 0\n * DF/DS -> RF/EX : 0\n * DS/WB -> EX/DF : 0\n * DS/WB -> RF/EX : 0\n\n"
+    }
+  ]
+}

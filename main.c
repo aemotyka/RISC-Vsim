@@ -102,7 +102,9 @@ int main(int argc, char *argv[]) {
     if (strcmp(operation, "dis") == 0) {
         disassemble(input_file, output_file);
     } else if (strcmp(operation, "sim") == 0) {
+        load_input(input_file);
         simulate(input_file, output_file, trace_start, trace_end);
+        free_input();
     } else {
         fprintf(stderr, "Error: Unsuported operation.\n");
         print_usage();
