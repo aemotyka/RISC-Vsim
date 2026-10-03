@@ -6,6 +6,41 @@
 #include "utilities.h"
 #include "pipeline.h"
 
+static int validate_input(FILE *input) {
+    size_t line = 1;
+    unsigned bits = 0;
+    bool has_word = false;
+    int c;
+
+    while ((c = fgetc(input)) != EOF) {
+        if (c == '\r') {
+            if (fgetc(input) != '\n') goto invalid;
+            c = '\n';
+        }
+        if (c == '\n') {
+            if (bits != 32) goto invalid;
+            has_word = true;
+            bits = 0;
+            line++;
+        } else if ((c == '0' || c == '1') && bits < 32) {
+            bits++;
+        } else {
+            goto invalid;
+        }
+    }
+    if (ferror(input)) {
+        fprintf(stderr, "Error: Could not read input.\n");
+        return 0;
+    }
+    if ((bits != 0 && bits != 32) || (!has_word && bits == 0)) goto invalid;
+    rewind(input);
+    return 1;
+
+invalid:
+    fprintf(stderr, "Error: Input line %zu must contain 32 binary digits.\n", line);
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     // Check that the correct number of arguments is provided
     if (argc < 4 || argc > 5) {
@@ -27,10 +62,16 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    if (!validate_input(input_file)) {
+        fclose(input_file);
+        return 1;
+    }
+
     // Try opening the output file for writing
     FILE *output_file = fopen(output_filename, "w");
     if (output_file == NULL) {
         fprintf(stderr, "Error: Could not open output file '%s'.\n", output_filename);
+        fclose(input_file);
         return 1;
     }
 

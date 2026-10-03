@@ -78,16 +78,25 @@ char *shiftLeft(const char *binary) {
 }
 
 uint32_t readSpecificLine(FILE* input_file, int lineNumber) {
+    if (lineNumber < 496 || (lineNumber - 496) % 4 != 0) {
+        fprintf(stderr, "Error: Invalid input address %d.\n", lineNumber);
+        exit(EXIT_FAILURE);
+    }
+
     rewind(input_file);
     char buffer[1024];
-    int currentLine = 496;
+    uint64_t address = 496;
 
     while (fgets(buffer, sizeof(buffer), input_file)) {
-        if (currentLine == lineNumber) {
-            buffer[strcspn(buffer, "\n")] = '\0';
-            break;
+        if (address == (uint32_t)lineNumber) {
+            return (uint32_t)strtoul(buffer, NULL, 2);
         }
-        currentLine+=4;
+        address += 4;
     }
-    return (uint32_t)strtoul(buffer, NULL, 2);
+    if (ferror(input_file)) {
+        fprintf(stderr, "Error: Could not read input.\n");
+    } else {
+        fprintf(stderr, "Error: Input address %d is absent.\n", lineNumber);
+    }
+    exit(EXIT_FAILURE);
 }
