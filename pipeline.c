@@ -54,6 +54,7 @@ typedef struct {
 typedef struct {
     char _instruction[10];
     uint32_t instruction;
+    uint32_t pc;
     char status[50];
 } IS_ID;
 
@@ -67,6 +68,7 @@ typedef struct {
     bool returned;
     char status[50];
     bool no_op_no;
+    uint32_t pc;
 } ID_RF;
 
 typedef struct {
@@ -81,6 +83,7 @@ typedef struct {
     bool stalled;
     bool rs1_forwarded;
     bool rs2_forwarded;
+    uint32_t pc;
 } RF_EX;
 
 typedef struct {
@@ -240,7 +243,8 @@ void IS() {
     }
 
 
-    is_id.instruction = readSpecificLine(if_is.input_file, if_is.NPC-4);
+    is_id.pc = if_is.NPC - 4;
+    is_id.instruction = readSpecificLine(if_is.input_file, is_id.pc);
 
     u_int8_t rs2 = (is_id.instruction >> 20) & 0x3F;
     u_int8_t rs1 = (is_id.instruction >> 15) & 0x1F;
@@ -276,6 +280,7 @@ void ID() {
         return;
     }
 
+    id_rf.pc = is_id.pc;
     id_rf.rs2 = (is_id.instruction >> 20) & 0x3F;
     id_rf.rs1 = (is_id.instruction >> 15) & 0x1F;
     id_rf.rd = (is_id.instruction >> 7) & 0x1F;
@@ -606,9 +611,8 @@ void ID() {
             char *shifted = shiftLeft(immediate_);
             int immediate = (int)strtol(shifted, NULL, 2);
 
-            // Sign extend the immediate value
-            if (immediate & 0x80000) {
-                immediate |= 0xFF00000;  // Sign-extend to 32-bits
+            if (immediate & 0x100000) {
+                immediate -= 0x200000;
             }
                 
             if (true) {
@@ -616,7 +620,7 @@ void ID() {
                 if (strcmp(binary_rd, "00000") == 0) {
                     strcpy(id_rf.instruction, "J");
                     id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s #520", id_rf.instruction);
+                    snprintf(id_rf.status, sizeof(id_rf.status), "%s #%u", id_rf.instruction, id_rf.pc + (uint32_t)id_rf.imm);
                     id_rf.rd = 0;
                     id_rf.rs1 = 0;
                     id_rf.rs2 = 0;
@@ -853,6 +857,7 @@ void RF() {
         rf_ex.rs1 = id_rf.rs1;
         rf_ex.rs2 = id_rf.rs2;
         rf_ex.imm = id_rf.imm;
+        rf_ex.pc = id_rf.pc;
         strcpy(rf_ex.instruction, id_rf.instruction);
         strcpy(rf_ex.status, id_rf.status);
     }
@@ -929,7 +934,7 @@ void EX() {
     }
     else if (strcmp(rf_ex.instruction, "J") == 0) {
         branch_taken = true;
-        branch_target = 520;  // Jump target is NPC + immediate
+        branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
     }
 
     ex_df.alu_result = alu_result;
