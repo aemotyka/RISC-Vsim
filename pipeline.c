@@ -246,7 +246,7 @@ void IS() {
     is_id.pc = if_is.NPC - 4;
     is_id.instruction = readSpecificLine(if_is.input_file, is_id.pc);
 
-    u_int8_t rs2 = (is_id.instruction >> 20) & 0x3F;
+    u_int8_t rs2 = (is_id.instruction >> 20) & 0x1F;
     u_int8_t rs1 = (is_id.instruction >> 15) & 0x1F;
     u_int8_t rd = (is_id.instruction >> 7) & 0x1F;
     uint32_t opcode = is_id.instruction & 0x7F;
@@ -281,7 +281,7 @@ void ID() {
     }
 
     id_rf.pc = is_id.pc;
-    id_rf.rs2 = (is_id.instruction >> 20) & 0x3F;
+    id_rf.rs2 = (is_id.instruction >> 20) & 0x1F;
     id_rf.rs1 = (is_id.instruction >> 15) & 0x1F;
     id_rf.rd = (is_id.instruction >> 7) & 0x1F;
 
@@ -431,8 +431,8 @@ void ID() {
             int immediate = (int)strtol(shifted, NULL, 2);
 
             // Perform sign extension
-            if (immediate & 0x800) {
-                immediate |= 0xFFFFE000;
+            if (immediate & 0x1000) {
+                immediate -= 0x2000;
             }
 
             // BEQ
@@ -901,7 +901,7 @@ void EX() {
     else if (strcmp(rf_ex.instruction, "BEQ") == 0) {
         if (rf_ex.rs1_data == rf_ex.rs2_data) {
             branch_taken = true;
-            branch_target = rf_ex.imm + if_is.NPC;  // NPC + immediate for branch target
+            branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
             
         }
     }
@@ -909,19 +909,19 @@ void EX() {
         // For BNE, evaluate the condition and compute the branch target
         if (rf_ex.rs1_data != rf_ex.rs2_data) {
             branch_taken = true;
-            branch_target = rf_ex.imm + if_is.NPC;
+            branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
         }
     }
     else if (strcmp(rf_ex.instruction, "BGE") == 0) {
         if (rf_ex.rs1_data >= rf_ex.rs2_data) {
             branch_taken = true;
-            branch_target = rf_ex.imm + if_is.NPC;  // NPC + immediate for branch target
+            branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
         }
     }
     else if (strcmp(rf_ex.instruction, "BLT") == 0) {
         if (rf_ex.rs1_data < rf_ex.rs2_data) {
             branch_taken = true;
-            branch_target = rf_ex.imm + if_is.NPC;  // NPC + immediate for branch target
+            branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
         }
     }
     else if (strcmp(rf_ex.instruction, "JAL") == 0) {

@@ -1,8 +1,4 @@
-"""Historical regression using a reconstructed input; not an ISA conformance test.
-
-The jump encoding and zero padding are inferred. The generated trace matches
-the surviving output.txt, including known simulator defects.
-"""
+"""Fibonacci regression."""
 
 from pathlib import Path
 import hashlib
@@ -11,7 +7,7 @@ import tempfile
 
 root = Path(__file__).resolve().parents[1]
 fixture = root / "tests/fixtures/fibonacci.txt"
-historical_sha256 = "426a95b3a464e4a16f36b97f6c27148cb7b64ba2761310e61d8a88e3b17fce4b"
+expected_sha256 = "ab7238908a8d3b47d96fcb1d82ca21b69e35a2f8cd290844928dae96e510654a"
 
 with tempfile.TemporaryDirectory(prefix="riscv-regression-") as directory:
     work = Path(directory)
@@ -34,9 +30,9 @@ with tempfile.TemporaryDirectory(prefix="riscv-regression-") as directory:
 
     output = (work / "sim.out").read_bytes()
     actual_sha256 = hashlib.sha256(output).hexdigest()
-    if actual_sha256 != historical_sha256:
-        raise SystemExit(f"Historical trace mismatch: {actual_sha256}")
-    print("PASS: complete trace matches historical output (147 cycles)")
+    if actual_sha256 != expected_sha256:
+        raise SystemExit(f"Fibonacci trace mismatch: {actual_sha256}")
+    print("PASS: complete Fibonacci trace (147 cycles)")
 
     summary = output.decode().split("**** Summary", 1)[1]
     memory = summary.split("Data Memory:\n", 1)[1].split("\n\n", 1)[0]

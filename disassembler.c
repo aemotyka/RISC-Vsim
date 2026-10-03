@@ -28,7 +28,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
         // Perform the bit shifting to extract parts
         uint32_t funct7 = (instruction >> 26) & 0x3F;
-        uint32_t rs2 = (instruction >> 20) & 0x3F;
+        uint32_t rs2 = (instruction >> 20) & 0x1F;
         uint32_t rs1 = (instruction >> 15) & 0x1F;
         uint32_t funct3 = (instruction >> 12) & 0x07;
         uint32_t rd = (instruction >> 7) & 0x1F;
@@ -143,8 +143,8 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 int immediate = (int)strtol(shifted, NULL, 2);
 
                 // Perform sign extension
-                if (immediate & 0x800) {
-                    immediate |= 0xFFFFE000;
+                if (immediate & 0x1000) {
+                    immediate -= 0x2000;
                 }
 
                 // BEQ
