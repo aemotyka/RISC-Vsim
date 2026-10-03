@@ -4,8 +4,20 @@
 #include <string.h>
 #include <stdbool.h>
 
+static uint32_t *input_words;
+static size_t input_count;
+
+static void *checked_malloc(size_t bytes) {
+    void *memory = malloc(bytes);
+    if (memory == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    return memory;
+}
+
 void print_usage() {
-    printf("Usage: RISC-Vsim <inputfilename> <outputfilename> dis\n");
+    printf("Usage: RISC-Vsim <inputfilename> <outputfilename> dis|sim [Tstart:end]\n");
 }
 
 void to_binary_string(uint32_t value, char *buffer, int bits) {
@@ -20,7 +32,7 @@ char *processSlice(const char *array, int start, int end, int *sliceLength) {
     *sliceLength = end - start;
     
     // Allocate memory for the new slice (+1 for the null terminator)
-    char *newSlice = malloc((*sliceLength + 1) * sizeof(char));
+    char *newSlice = checked_malloc((*sliceLength + 1) * sizeof(char));
 
     // Copy the selected slice into the new array
     for (int i = 0; i < *sliceLength; i++) {
@@ -41,7 +53,7 @@ char *combineSlices(const char *slices[], int numSlices) {
     }
 
     // Allocate memory for the combined string (+1 for null terminator)
-    char *combined = malloc((totalLength + 1) * sizeof(char));
+    char *combined = checked_malloc((totalLength + 1) * sizeof(char));
 
     // Initialize the combined string
     combined[0] = '\0';
@@ -58,7 +70,7 @@ char *shiftLeft(const char *binary) {
     int length = strlen(binary);
 
     // Allocate memory for the shifted result (+1 for null terminator and 1 extra bit)
-    char *shiftedStr = malloc((length + 1) * sizeof(char));
+    char *shiftedStr = checked_malloc((length + 2) * sizeof(char));
 
     // Keep the highest bit (it stays in position)
     shiftedStr[0] = binary[0];
@@ -77,17 +89,53 @@ char *shiftLeft(const char *binary) {
     return shiftedStr;
 }
 
-uint32_t readSpecificLine(FILE* input_file, int lineNumber) {
+void free_input(void) {
+    free(input_words);
+    input_words = NULL;
+    input_count = 0;
+}
+
+void load_input(FILE *input_file) {
+    free_input();
     rewind(input_file);
     char buffer[1024];
-    int currentLine = 496;
-
+    size_t count = 0;
     while (fgets(buffer, sizeof(buffer), input_file)) {
-        if (currentLine == lineNumber) {
-            buffer[strcspn(buffer, "\n")] = '\0';
-            break;
+        if (count == SIZE_MAX / sizeof(*input_words)) {
+            fprintf(stderr, "Error: Input is too large.\n");
+            exit(EXIT_FAILURE);
         }
-        currentLine+=4;
+        count++;
     }
-    return (uint32_t)strtoul(buffer, NULL, 2);
+    if (ferror(input_file) || count == 0) {
+        fprintf(stderr, "Error: Could not read input.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    input_words = checked_malloc(count * sizeof(*input_words));
+    rewind(input_file);
+    for (size_t i = 0; i < count; i++) {
+        if (!fgets(buffer, sizeof(buffer), input_file)) {
+            free_input();
+            fprintf(stderr, "Error: Could not read input.\n");
+            exit(EXIT_FAILURE);
+        }
+        input_words[i] = (uint32_t)strtoul(buffer, NULL, 2);
+    }
+    input_count = count;
+}
+
+uint32_t readSpecificLine(FILE* input_file, int lineNumber) {
+    (void)input_file;
+    if (lineNumber < 496 || (lineNumber - 496) % 4 != 0) {
+        fprintf(stderr, "Error: Invalid input address %d.\n", lineNumber);
+        exit(EXIT_FAILURE);
+    }
+
+    size_t index = ((uint32_t)lineNumber - 496) / 4;
+    if (index >= input_count) {
+        fprintf(stderr, "Error: Input address %d is absent.\n", lineNumber);
+        exit(EXIT_FAILURE);
+    }
+    return input_words[index];
 }

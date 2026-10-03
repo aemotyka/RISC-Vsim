@@ -22,13 +22,13 @@ void disassemble(FILE* input_file, FILE* output_file) {
         uint32_t instruction = (uint32_t)strtoul(line, NULL, 2);
 
         // Use for immediate value later
-        char instruction_[32];
+        char instruction_[33];
         to_binary_string(instruction, instruction_, 32);
         int size;
 
         // Perform the bit shifting to extract parts
         uint32_t funct7 = (instruction >> 26) & 0x3F;
-        uint32_t rs2 = (instruction >> 20) & 0x3F;
+        uint32_t rs2 = (instruction >> 20) & 0x1F;
         uint32_t rs1 = (instruction >> 15) & 0x1F;
         uint32_t funct3 = (instruction >> 12) & 0x07;
         uint32_t rd = (instruction >> 7) & 0x1F;
@@ -114,7 +114,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF800;
+                        immediate -= 0x1000;
                     }
 
                 // SW
@@ -143,8 +143,8 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 int immediate = (int)strtol(shifted, NULL, 2);
 
                 // Perform sign extension
-                if (immediate & 0x800) {
-                    immediate |= 0xFFFFE000;
+                if (immediate & 0x1000) {
+                    immediate -= 0x2000;
                 }
 
                 // BEQ
@@ -187,7 +187,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
 
                 // JALR and RET
@@ -220,7 +220,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
                 
                 // LW
@@ -244,7 +244,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
                 
                 // ADDI and NOP
@@ -284,19 +284,17 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 int immediate = (int)strtol(shifted, NULL, 2);
 
                 // Sign extend the immediate value
-                if (immediate & 0x80000) {
-                    immediate |= 0xFF00000;  // Sign-extend to 32-bits
+                if (immediate & 0x100000) {
+                    immediate -= 0x200000;
                 }
                 
-                if (true) {
-                    // J
-                    if (strcmp(binary_rd, "00000") == 0) {
-                        fprintf(output_file, "J\t\t//JAL x0, %hi", immediate);
-                    }
-                    // JAL
-                    else {
-                        fprintf(output_file, "JAL x%u, %hi", rd, immediate);
-                    }
+                // J
+                if (strcmp(binary_rd, "00000") == 0) {
+                    fprintf(output_file, "J\t\t//JAL x0, %i", immediate);
+                }
+                // JAL
+                else {
+                    fprintf(output_file, "JAL x%u, %i", rd, immediate);
                 }
 
                 // Free dynamically allocated memory
