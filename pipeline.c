@@ -1118,7 +1118,8 @@ void handle_forward() {
 
     ex_df_to_rf_ex.data = ex_df.alu_result;
     df_ds_to_ex_df.data = df_ds.alu_result;
-    df_ds_to_rf_ex.data = df_ds.mem_data;
+    df_ds_to_rf_ex.data = strcmp(df_ds.instruction, "LW") == 0
+        ? df_ds.mem_data : df_ds.alu_result;
     ds_wb_to_rf_ex.data = ds_wb.alu_result;
     ds_wb_to_ex_df.data = ds_wb.mem_data;
 

@@ -19,14 +19,16 @@ for name, funct3, a, b, taken in (
     ("blt-taken", 4, 1, 2, True), ("blt-not-taken", 4, 2, 1, False),
     ("bge-taken", 5, 2, 1, True), ("bge-not-taken", 5, 1, 2, False),
 ):
-    words = [0x13] * 26 + [0] * 10
-    words[0] = (a << 20) | 0x93
-    words[1] = (b << 20) | 0x113
-    words[8] = branch(1, 2, funct3, 32)
-    words[14] = 0x06300313
-    words[16] = 0x00700293
-    words[20] = 0x8067
-    cases.append((name, words, 0 if taken else 99))
+    for mode in ("settled", "forward-rs1", "forward-rs2"):
+        words = [0x13] * 26 + [0] * 10
+        setup = [(a << 20) | 0x93, (b << 20) | 0x113]
+        words[:2] = setup[::-1] if mode == "forward-rs2" else setup
+        index = 8 if mode == "settled" else 2
+        words[index] = branch(1, 2, funct3, 32)
+        words[index + 6] = 0x06300313
+        words[index + 8] = 0x00700293
+        words[index + 12] = 0x8067
+        cases.append((f"{name}-{mode}", words, 0 if taken else 99))
 
 words = [0x13] * 26 + [0] * 10
 words[0] = 0x0200006f
