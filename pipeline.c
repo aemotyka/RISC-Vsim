@@ -886,6 +886,9 @@ void EX() {
     else if (strcmp(rf_ex.instruction, "SLT") == 0) {
         alu_result = (rf_ex.rs1_data < rf_ex.rs2_data) ? 1 : 0;
     }
+    else if (strcmp(rf_ex.instruction, "SLTI") == 0) {
+        alu_result = ((int32_t)rf_ex.rs1_data < rf_ex.imm) ? 1 : 0;
+    }
     else if (strcmp(rf_ex.instruction, "SLL") == 0) {
         alu_result = rf_ex.rs1_data << rf_ex.rs2_data;
     }
