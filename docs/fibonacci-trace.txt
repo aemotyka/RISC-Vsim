@@ -1,0 +1,108 @@
+***** Cycle #20 ***********************************************
+
+Current PC = 564:
+
+Pipeline Status:
+ * IF : <unknown>
+ * IS : <fetched **STALL**>
+ * ID : **STALL**
+ * RF : **STALL**
+ * EX : J #520
+ * DF : BEQ R10, R8, #8
+ * DS : ADDI R10, R10, #4
+ * WB : SW R5, 600(R10)
+
+Stall Instruction: (none)
+
+Forwarding:
+ Detected: (none)
+ Forwarded:
+ * EX/DF -> RF/EX : (none)
+ * DF/DS -> EX/DF : (none)
+ * DF/DS -> RF/EX : (none)
+ * DS/WB -> EX/DF : (none)
+ * DS/WB -> RF/EX : (none)
+
+Pipeline Registers:
+ * IF/IS.NPC: 568
+ * IS/ID.IR: <**STALL**>
+ * RF/EX.A: 0
+ * RF/EX.B: 0
+ * EX/DF.ALUout: 0
+ * EX/DF.B: 0
+ * DS/WB.ALUout-LMD: 0
+
+Integer Registers:
+R0       0 R1       0 R2       0 R3       0 
+R4       0 R5       2 R6       1 R7       4 
+R8       44 R9       0 R10       8 R11       0 
+R12       0 R13       0 R14       0 R15       0 
+R16       0 R17       0 R18       0 R19       0 
+R20       0 R21       1 R22       1 R23       0 
+R24       4 R25       0 R26       0 R27       0 
+R28       0 R29       0 R30       0 R31       0 
+
+Data Memory:
+600: 1
+604: 1
+608: 2
+612: 0
+616: 0
+620: 0
+624: 0
+628: 0
+632: 0
+636: 0
+
+Total Stalls:
+ * Loads: 2
+ * Branches: 1
+ * Other: 0
+
+Total Forwardings:
+ * EX/DF -> RF/EX : 5
+ * DF/DS -> EX/DF : 2
+ * DF/DS -> RF/EX : 0
+ * DS/WB -> EX/DF : 0
+ * DS/WB -> RF/EX : 3
+
+**** Summary ************************************************
+
+BREAK PC = 556
+
+Total Cycles Simulated = 147
+
+Integer Registers:
+R0       0 R1       0 R2       0 R3       0 
+R4       0 R5       89 R6       1 R7       4 
+R8       44 R9       0 R10       44 R11       0 
+R12       0 R13       0 R14       0 R15       0 
+R16       0 R17       0 R18       0 R19       0 
+R20       0 R21       34 R22       55 R23       32 
+R24       36 R25       0 R26       0 R27       0 
+R28       0 R29       0 R30       0 R31       0 
+
+Data Memory:
+600: 1
+604: 1
+608: 2
+612: 3
+616: 5
+620: 8
+624: 13
+628: 21
+632: 34
+636: 55
+
+Total Stalls:
+ * Loads: 18
+ * Branches: 36
+ * Other: 0
+
+Total Forwardings:
+ * EX/DF -> RF/EX : 29
+ * DF/DS -> EX/DF : 10
+ * DF/DS -> RF/EX : 0
+ * DS/WB -> EX/DF : 0
+ * DS/WB -> RF/EX : 11
+

@@ -27,3 +27,5 @@ python3 tests/check_errors.py
 ```
 
 [Instructions and memory layout](docs/model.md) · [Performance measurements](docs/performance.md)
+
+[Sample trace](docs/fibonacci-trace.txt): Fibonacci cycle 20 and final summary, generated with `sim T20:20`.
