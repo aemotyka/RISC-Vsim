@@ -114,7 +114,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF800;
+                        immediate -= 0x1000;
                     }
 
                 // SW
@@ -187,7 +187,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
 
                 // JALR and RET
@@ -220,7 +220,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
                 
                 // LW
@@ -244,7 +244,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
 
                 // Sign extend immediate
                 if (immediate & 0x800) {
-                        immediate |= 0xF000;
+                        immediate -= 0x1000;
                     }
                 
                 // ADDI and NOP

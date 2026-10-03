@@ -397,7 +397,7 @@ void ID() {
 
             // Sign extend immediate
             if (immediate & 0x800) {
-                    immediate |= 0xF800;
+                    immediate -= 0x1000;
                 }
 
             // SW
@@ -530,7 +530,7 @@ void ID() {
 
             // Sign extend immediate
             if (immediate & 0x800) {
-                    immediate |= 0xF000;
+                    immediate -= 0x1000;
                 }
                 
             // LW
@@ -559,7 +559,7 @@ void ID() {
 
             // Sign extend immediate
             if (immediate & 0x800) {
-                    immediate |= 0xF000;
+                    immediate -= 0x1000;
                 }
                 
             // ADDI and NOP
