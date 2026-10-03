@@ -40,8 +40,9 @@ int main(int argc, char *argv[]) {
 
     if (trace != NULL) {
         // Parse the Tn:m format
-        if (sscanf(trace, "T%d:%d", &trace_start, &trace_end) != 2) {
-            fprintf(stderr, "Error: Invalid trace format. Expected Tn:m.\n");
+        if (sscanf(trace, "T%d:%d", &trace_start, &trace_end) != 2
+            || trace_start < 0 || trace_end < trace_start) {
+            fprintf(stderr, "Error: Invalid trace format. Expected Tn:m with 0 <= n <= m.\n");
             fclose(input_file);
             fclose(output_file);
             return 1;
