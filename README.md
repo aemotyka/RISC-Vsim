@@ -1,7 +1,7 @@
 Compile before running.
 
 To compile:
-gcc -o RISC-Vsim main.c disassembler.c
+gcc -o RISC-Vsim main.c disassembler.c pipeline.c utilities.c
 
 To dissassemble:
 ./RISC-Vsim inputfilename outputfilename dis

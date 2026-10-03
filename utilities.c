@@ -58,7 +58,7 @@ char *shiftLeft(const char *binary) {
     int length = strlen(binary);
 
     // Allocate memory for the shifted result (+1 for null terminator and 1 extra bit)
-    char *shiftedStr = malloc((length + 1) * sizeof(char));
+    char *shiftedStr = malloc((length + 2) * sizeof(char));
 
     // Keep the highest bit (it stays in position)
     shiftedStr[0] = binary[0];

@@ -22,7 +22,7 @@ void disassemble(FILE* input_file, FILE* output_file) {
         uint32_t instruction = (uint32_t)strtoul(line, NULL, 2);
 
         // Use for immediate value later
-        char instruction_[32];
+        char instruction_[33];
         to_binary_string(instruction, instruction_, 32);
         int size;
 

@@ -2,6 +2,7 @@
 #define UTILITIES_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 void print_usage();
 void to_binary_string(uint32_t value, char *buffer, int bits);

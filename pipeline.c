@@ -372,7 +372,7 @@ void ID() {
         // Opcode S
         else if (strcmp(binary_opcode, "0100011") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
@@ -404,7 +404,7 @@ void ID() {
         // Opcode B
         else if (strcmp(binary_opcode, "1100011") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
@@ -463,7 +463,7 @@ void ID() {
         // Opcode I
         else if (strcmp(binary_opcode, "1100111") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
@@ -507,7 +507,7 @@ void ID() {
         // Still Opcode I
         else if (strcmp(binary_opcode, "0000011") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
@@ -536,7 +536,7 @@ void ID() {
         // Still Opcode I
         else if (strcmp(binary_opcode, "0010011") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
@@ -585,7 +585,7 @@ void ID() {
         // Opcode J
         else if (strcmp(binary_opcode, "1101111") == 0) {
             // Calculate immediate value:
-            char instruction_[32];
+            char instruction_[33];
             to_binary_string(is_id.instruction, instruction_, 32);
             int size;
 
