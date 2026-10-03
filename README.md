@@ -8,3 +8,5 @@ To dissassemble:
 
 To simulate pipeline:
 ./RISC-Vsim inputfilename outputfilename sim <T{trace start}:{trace end}>
+
+Model, memory layout, supported instructions, and validation: [docs/model.md](docs/model.md).

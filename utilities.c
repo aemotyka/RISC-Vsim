@@ -4,6 +4,15 @@
 #include <string.h>
 #include <stdbool.h>
 
+static void *checked_malloc(size_t bytes) {
+    void *memory = malloc(bytes);
+    if (memory == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        exit(EXIT_FAILURE);
+    }
+    return memory;
+}
+
 void print_usage() {
     printf("Usage: RISC-Vsim <inputfilename> <outputfilename> dis\n");
 }
@@ -20,7 +29,7 @@ char *processSlice(const char *array, int start, int end, int *sliceLength) {
     *sliceLength = end - start;
     
     // Allocate memory for the new slice (+1 for the null terminator)
-    char *newSlice = malloc((*sliceLength + 1) * sizeof(char));
+    char *newSlice = checked_malloc((*sliceLength + 1) * sizeof(char));
 
     // Copy the selected slice into the new array
     for (int i = 0; i < *sliceLength; i++) {
@@ -41,7 +50,7 @@ char *combineSlices(const char *slices[], int numSlices) {
     }
 
     // Allocate memory for the combined string (+1 for null terminator)
-    char *combined = malloc((totalLength + 1) * sizeof(char));
+    char *combined = checked_malloc((totalLength + 1) * sizeof(char));
 
     // Initialize the combined string
     combined[0] = '\0';
@@ -58,7 +67,7 @@ char *shiftLeft(const char *binary) {
     int length = strlen(binary);
 
     // Allocate memory for the shifted result (+1 for null terminator and 1 extra bit)
-    char *shiftedStr = malloc((length + 2) * sizeof(char));
+    char *shiftedStr = checked_malloc((length + 2) * sizeof(char));
 
     // Keep the highest bit (it stays in position)
     shiftedStr[0] = binary[0];
