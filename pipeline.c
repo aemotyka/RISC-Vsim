@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include "utilities.h"
 
-int register_file[32];
-int data_memory[10];
+uint32_t register_file[32];
+uint32_t data_memory[10];
 
 typedef struct {
     bool returned;
@@ -76,8 +76,8 @@ typedef struct {
     uint8_t rs1;
     uint8_t rs2;
     uint8_t rd;
-    u_int16_t rs1_data;
-    u_int16_t rs2_data;
+    uint32_t rs1_data;
+    uint32_t rs2_data;
     int imm;
     char status[50];
     bool stalled;
@@ -91,10 +91,10 @@ typedef struct {
     uint8_t rs1;
     uint8_t rs2;
     uint8_t rd;
-    u_int16_t rs1_data;
-    u_int16_t rs2_data;
+    uint32_t rs1_data;
+    uint32_t rs2_data;
     int imm;
-    u_int16_t alu_result;
+    uint32_t alu_result;
     int branch_target;
     bool branch_taken;
     bool mem_read;
@@ -115,7 +115,7 @@ typedef struct {
     bool mem_write;
     uint32_t mem_data;
     char status[50];
-    u_int16_t alu_result;
+    uint32_t alu_result;
     bool rs1_forwarded;
     bool rs2_forwarded;
 } DF_DS;
@@ -156,7 +156,7 @@ WB_out wb;
 global_state CPUstate;
 
 typedef struct {
-    int data;
+    uint32_t data;
     uint8_t reg;
 } ForwardingPath;
 
@@ -404,7 +404,7 @@ void ID() {
             if (strcmp(binary_funct3, "010") == 0) {
                 strcpy(id_rf.instruction, "SW");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, %hi(R%u)", id_rf.instruction, id_rf.rs2, id_rf.imm, id_rf.rs1);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, %i(R%u)", id_rf.instruction, id_rf.rs2, id_rf.imm, id_rf.rs1);
                 id_rf.rd = 0;
             }
 
@@ -439,28 +439,28 @@ void ID() {
             if (strcmp(binary_funct3, "000") == 0) {
                 strcpy(id_rf.instruction, "BEQ");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
                 id_rf.rd = 0;
             }
             // BNE
             else if (strcmp(binary_funct3, "001") == 0) {
                 strcpy(id_rf.instruction, "BNE");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
                 id_rf.rd = 0;
             }
             // BLT
             else if (strcmp(binary_funct3, "100") == 0) {
                 strcpy(id_rf.instruction, "BLT");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
                 id_rf.rd = 0;
             }
             // BGE
             else if (strcmp(binary_funct3, "101") == 0) {
                 strcpy(id_rf.instruction, "BGE");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rs1, id_rf.rs2, id_rf.imm);
                 id_rf.rd = 0;
             }
 
@@ -507,7 +507,7 @@ void ID() {
                 else {
                     strcpy(id_rf.instruction, "JALR");
                     id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
+                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
                     id_rf.rs2 = 0;
                 }
             }
@@ -577,7 +577,7 @@ void ID() {
                 else {
                     strcpy(id_rf.instruction, "ADDI");
                     id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
+                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
                     id_rf.rs2 = 0;
                 }
             }
@@ -585,7 +585,7 @@ void ID() {
             else if (strcmp(binary_funct3, "010") == 0) {
                 strcpy(id_rf.instruction, "SLTI");
                 id_rf.imm = immediate;
-                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%hi", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
+                snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.rs1, id_rf.imm);
                 id_rf.rs2 = 0;
             }
 
@@ -629,7 +629,7 @@ void ID() {
                 else {
                     strcpy(id_rf.instruction, "JAL");
                     id_rf.imm = immediate;
-                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, #%hi", id_rf.instruction, id_rf.rd, id_rf.imm);
+                    snprintf(id_rf.status, sizeof(id_rf.status), "%s R%u, #%i", id_rf.instruction, id_rf.rd, id_rf.imm);
                     id_rf.rs1 = 0;
                     id_rf.rs2 = 0;
                 }
@@ -864,7 +864,7 @@ void RF() {
 };
 
 void EX() {
-    int alu_result = 0;
+    uint32_t alu_result = 0;
     uint32_t branch_target = 0;
     bool branch_taken = false;
 
@@ -884,16 +884,16 @@ void EX() {
         alu_result = rf_ex.rs1_data ^ rf_ex.rs2_data;
     }
     else if (strcmp(rf_ex.instruction, "SLT") == 0) {
-        alu_result = (rf_ex.rs1_data < rf_ex.rs2_data) ? 1 : 0;
+        alu_result = ((int32_t)rf_ex.rs1_data < (int32_t)rf_ex.rs2_data) ? 1 : 0;
     }
     else if (strcmp(rf_ex.instruction, "SLTI") == 0) {
         alu_result = ((int32_t)rf_ex.rs1_data < rf_ex.imm) ? 1 : 0;
     }
     else if (strcmp(rf_ex.instruction, "SLL") == 0) {
-        alu_result = rf_ex.rs1_data << rf_ex.rs2_data;
+        alu_result = rf_ex.rs1_data << (rf_ex.rs2_data & 31u);
     }
     else if (strcmp(rf_ex.instruction, "SRL") == 0) {
-        alu_result = rf_ex.rs1_data >> rf_ex.rs2_data;
+        alu_result = rf_ex.rs1_data >> (rf_ex.rs2_data & 31u);
     }
     else if (strcmp(rf_ex.instruction, "ADDI") == 0) {
         alu_result = rf_ex.rs1_data + rf_ex.imm;
@@ -916,13 +916,13 @@ void EX() {
         }
     }
     else if (strcmp(rf_ex.instruction, "BGE") == 0) {
-        if (rf_ex.rs1_data >= rf_ex.rs2_data) {
+        if ((int32_t)rf_ex.rs1_data >= (int32_t)rf_ex.rs2_data) {
             branch_taken = true;
             branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
         }
     }
     else if (strcmp(rf_ex.instruction, "BLT") == 0) {
-        if (rf_ex.rs1_data < rf_ex.rs2_data) {
+        if ((int32_t)rf_ex.rs1_data < (int32_t)rf_ex.rs2_data) {
             branch_taken = true;
             branch_target = rf_ex.pc + (uint32_t)rf_ex.imm;
         }
@@ -1339,14 +1339,14 @@ void trace_output(FILE* output_file) {
     } else {
         fprintf(output_file, " * IS/ID.IR: <%s>\n", is_id.status);
     }
-    fprintf(output_file, " * RF/EX.A: %hi\n", rf_ex.rs1_data);
-    fprintf(output_file, " * RF/EX.B: %hi\n", rf_ex.rs2_data);
-    fprintf(output_file, " * EX/DF.ALUout: %hi\n", ex_df.alu_result);
-    fprintf(output_file, " * EX/DF.B: %hi\n", ex_df.rs2_data);
+    fprintf(output_file, " * RF/EX.A: %i\n", (int32_t)rf_ex.rs1_data);
+    fprintf(output_file, " * RF/EX.B: %i\n", (int32_t)rf_ex.rs2_data);
+    fprintf(output_file, " * EX/DF.ALUout: %i\n", (int32_t)ex_df.alu_result);
+    fprintf(output_file, " * EX/DF.B: %i\n", (int32_t)ex_df.rs2_data);
     if (strcmp(ds_wb.instruction, "LW") == 0) {
-        fprintf(output_file, " * DS/WB.ALUout-LMD: %hi\n", ds_wb.alu_result);
+        fprintf(output_file, " * DS/WB.ALUout-LMD: %i\n", (int32_t)ds_wb.alu_result);
     } else if (strcmp(ds_wb.instruction, "SW") == 0) {
-        fprintf(output_file, " * DS/WB.ALUout-LMD: %hi\n", ds_wb.mem_data);
+        fprintf(output_file, " * DS/WB.ALUout-LMD: %i\n", (int32_t)ds_wb.mem_data);
     } else {
         fprintf(output_file, " * DS/WB.ALUout-LMD: 0\n");
     }
@@ -1355,7 +1355,7 @@ void trace_output(FILE* output_file) {
     
     for (i = 0; i <= 7; i++) {
         for (j = 0; j <= 3; j++) {
-            fprintf(output_file, "R%i       %hi ", (4*i)+j, register_file[(4*i)+j]);
+            fprintf(output_file, "R%i       %i ", (4*i)+j, (int32_t)register_file[(4*i)+j]);
         }
         fprintf(output_file, "\n");
     }
@@ -1363,7 +1363,7 @@ void trace_output(FILE* output_file) {
     fprintf(output_file, "\n");
     fprintf(output_file, "Data Memory:\n");
     for (i = 0; i < 10; i++) {
-        fprintf(output_file, "%i: %hi\n", 600 + i*4, data_memory[i]);
+        fprintf(output_file, "%i: %i\n", 600 + i*4, (int32_t)data_memory[i]);
     }
 
     fprintf(output_file, "\n");
@@ -1397,7 +1397,7 @@ void print_summary(FILE* output_file) {
     
     for (i = 0; i <= 8; i++) {
         for (j = 0; j <= 3; j++) {
-            fprintf(output_file, "R%i       %hi ", i+j, register_file[i+j]);
+            fprintf(output_file, "R%i       %i ", i+j, (int32_t)register_file[i+j]);
         }
         fprintf(output_file, "\n");
     }
@@ -1405,7 +1405,7 @@ void print_summary(FILE* output_file) {
     fprintf(output_file, "\n");
     fprintf(output_file, "Data Memory:\n");
     for (i = 0; i < 10; i++) {
-        fprintf(output_file, "%i: %hi\n", 600 + i*4, data_memory[i]);
+        fprintf(output_file, "%i: %i\n", 600 + i*4, (int32_t)data_memory[i]);
     }
 
     fprintf(output_file, "\n");

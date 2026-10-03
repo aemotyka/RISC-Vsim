@@ -18,10 +18,16 @@ for name, funct3, a, b, taken in (
     ("bne-taken", 1, 1, 2, True), ("bne-not-taken", 1, 1, 1, False),
     ("blt-taken", 4, 1, 2, True), ("blt-not-taken", 4, 2, 1, False),
     ("bge-taken", 5, 2, 1, True), ("bge-not-taken", 5, 1, 2, False),
+    ("blt-negative-taken", 4, -1, 1, True),
+    ("blt-negative-not-taken", 4, 1, -1, False),
+    ("bge-negative-taken", 5, 1, -1, True),
+    ("bge-negative-not-taken", 5, -1, 1, False),
+    ("blt-negative-equal", 4, -1, -1, False),
+    ("bge-negative-equal", 5, -1, -1, True),
 ):
     for mode in ("settled", "forward-rs1", "forward-rs2"):
         words = [0x13] * 26 + [0] * 10
-        setup = [(a << 20) | 0x93, (b << 20) | 0x113]
+        setup = [((a & 0xfff) << 20) | 0x93, ((b & 0xfff) << 20) | 0x113]
         words[:2] = setup[::-1] if mode == "forward-rs2" else setup
         index = 8 if mode == "settled" else 2
         words[index] = branch(1, 2, funct3, 32)
