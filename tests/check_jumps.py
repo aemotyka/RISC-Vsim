@@ -23,17 +23,28 @@ with tempfile.TemporaryDirectory(prefix="riscv-jumps-") as directory:
           ("main.c", "disassembler.c", "pipeline.c", "utilities.c")],
     ], check=True)
 
-    for name in ("forward", "backward"):
+    for name in ("forward", "backward", "jal", "jalr", "jalr-x0", "x0"):
         words = [0x13] * 26 + [0] * 10
         words[0] = jump(32)
         words[12] = 0x00008067
         if name == "forward":
             words[6] = 0x06300313
             words[8] = 0x00700293
-        else:
+        elif name == "backward":
             words[1] = 0x00700293
             words[2] = jump(40)
             words[8] = jump(-28)
+        elif name in ("jal", "jalr", "jalr-x0"):
+            words[6] = 0x06300313
+            words[8] = 0x00700293
+            if name == "jal":
+                words[0] = jump(32) | 0x80
+            else:
+                words[0] = 0x21500113
+                words[1] = 0xffb100e7 if name == "jalr" else 0xffb10067
+        else:
+            words[0] = 0x00900013
+            words[1] = 0x00700293
 
         source = work / f"{name}.txt"
         output = work / f"{name}.out"
@@ -50,6 +61,10 @@ with tempfile.TemporaryDirectory(prefix="riscv-jumps-") as directory:
             int(register): int(value)
             for register, value in re.findall(r"R(\d+)\s+(-?\d+)", registers)
         }
-        if values[5] != 7 or values[6] != 0:
-            raise SystemExit(f"FAIL: {name}: R5={values[5]}, R6={values[6]}")
-        print(f"PASS: {name} jump")
+        if values[0] != 0 or values[5] != 7 or values[6] != 0:
+            raise SystemExit(f"FAIL: {name}: R0={values[0]}, R5={values[5]}, R6={values[6]}")
+        if name in ("jal", "jalr"):
+            expected_link = 500 if name == "jal" else 504
+            if values[1] != expected_link:
+                raise SystemExit(f"FAIL: {name}: R1={values[1]}, expected {expected_link}")
+        print(f"PASS: {name}")
