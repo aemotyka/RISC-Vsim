@@ -68,3 +68,15 @@ with tempfile.TemporaryDirectory(prefix="riscv-jumps-") as directory:
             if values[1] != expected_link:
                 raise SystemExit(f"FAIL: {name}: R1={values[1]}, expected {expected_link}")
         print(f"PASS: {name}")
+
+    for offset in (-1048576, -65536, -28, 32, 65536, 524288, 1048574):
+        for rd in (0, 1):
+            source = work / "dis-input.txt"
+            output = work / "dis-output.txt"
+            source.write_text(f"{jump(offset) | rd << 7:032b}\n{0x8067:032b}\n")
+            subprocess.run([str(binary), str(source), str(output), "dis"],
+                           check=True, timeout=5)
+            expected = f"J\t\t//JAL x0, {offset}" if rd == 0 else f"JAL x1, {offset}"
+            if expected not in output.read_text():
+                raise SystemExit(f"FAIL: disassembly: {expected}")
+        print(f"PASS: jump disassembly {offset}")

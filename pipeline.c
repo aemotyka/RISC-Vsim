@@ -1395,9 +1395,9 @@ void print_summary(FILE* output_file) {
     fprintf(output_file, "\n");
     fprintf(output_file, "Integer Registers:\n");
     
-    for (i = 0; i <= 8; i++) {
-        for (j = 0; j <= 3; j++) {
-            fprintf(output_file, "R%i       %i ", i+j, (int32_t)register_file[i+j]);
+    for (i = 0; i < 8; i++) {
+        for (j = 0; j < 4; j++) {
+            fprintf(output_file, "R%i       %i ", 4*i+j, (int32_t)register_file[4*i+j]);
         }
         fprintf(output_file, "\n");
     }

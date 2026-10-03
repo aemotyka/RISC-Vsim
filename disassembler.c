@@ -284,18 +284,18 @@ void disassemble(FILE* input_file, FILE* output_file) {
                 int immediate = (int)strtol(shifted, NULL, 2);
 
                 // Sign extend the immediate value
-                if (immediate & 0x80000) {
-                    immediate |= 0xFF00000;  // Sign-extend to 32-bits
+                if (immediate & 0x100000) {
+                    immediate -= 0x200000;
                 }
                 
                 if (true) {
                     // J
                     if (strcmp(binary_rd, "00000") == 0) {
-                        fprintf(output_file, "J\t\t//JAL x0, %hi", immediate);
+                        fprintf(output_file, "J\t\t//JAL x0, %i", immediate);
                     }
                     // JAL
                     else {
-                        fprintf(output_file, "JAL x%u, %hi", rd, immediate);
+                        fprintf(output_file, "JAL x%u, %i", rd, immediate);
                     }
                 }
 

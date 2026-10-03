@@ -2,12 +2,13 @@
 
 from pathlib import Path
 import hashlib
+import re
 import subprocess
 import tempfile
 
 root = Path(__file__).resolve().parents[1]
 fixture = root / "tests/fixtures/fibonacci.txt"
-expected_sha256 = "ab7238908a8d3b47d96fcb1d82ca21b69e35a2f8cd290844928dae96e510654a"
+expected_sha256 = "298ceecba1ee295e96d5385ee03f4f03defe2765792fd50f26b86077811ed40c"
 
 with tempfile.TemporaryDirectory(prefix="riscv-regression-") as directory:
     work = Path(directory)
@@ -34,7 +35,15 @@ with tempfile.TemporaryDirectory(prefix="riscv-regression-") as directory:
         raise SystemExit(f"Fibonacci trace mismatch: {actual_sha256}")
     print("PASS: complete Fibonacci trace (147 cycles)")
 
-    summary = output.decode().split("**** Summary", 1)[1]
+    trace, summary = output.decode().split("**** Summary", 1)
+    summary_registers = summary.split("Integer Registers:\n", 1)[1].split("Data Memory:", 1)[0]
+    trace_registers = trace.rsplit("Integer Registers:\n", 1)[1].split("Data Memory:", 1)[0]
+    pairs = re.findall(r"R(\d+)\s+(-?\d+)", summary_registers)
+    if [int(r) for r, _ in pairs] != list(range(32)):
+        raise SystemExit("Summary must print R0 through R31 exactly once")
+    if pairs != re.findall(r"R(\d+)\s+(-?\d+)", trace_registers):
+        raise SystemExit("Summary registers differ from the final trace")
+    print("PASS: all 32 summary registers match the final trace")
     memory = summary.split("Data Memory:\n", 1)[1].split("\n\n", 1)[0]
     expected = (1, 1, 2, 3, 5, 8, 13, 21, 34, 55)
     expected_memory = "\n".join(
